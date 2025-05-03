@@ -6,6 +6,7 @@
 #include <chrono>
 #include <vector>
 #include <algorithm>
+#include <random>
 
 class Config {
 public:
@@ -406,10 +407,13 @@ void makeTapeSort(Tape& inputTape, Tape& outputTape, Config& config) {
 
 void makeFile() {
 	std::ofstream file("input.bin", std::ios::binary);
-	int n = 100'000;
+	int n = 200'000;
 	std::vector<int> data(n);
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dist(std::numeric_limits<int>::min(),std::numeric_limits<int>::max());
 	for (int i = 0; i < n; i++) {
-		data[i] = rand();
+		data[i] = dist(gen);
 	}
 	for (int val : data) {
 		file.write(reinterpret_cast<const char*>(&val), sizeof(int));
@@ -428,7 +432,6 @@ void makeTestTape(Tape& tape) {
 
 int main(int argc, char* argv[]) {
 	makeFile();
-
 	if (argc != 3) {
 		std::cerr << "Bad input\n";
 		return 1;
@@ -438,10 +441,12 @@ int main(int argc, char* argv[]) {
 		Config config(configFile);
 		Tape inputTape(inputFile, config);
 		Tape outputTape(outputFile, config);
-		
-		//makeTestTape(inputTape);
-
+		makeTestTape(inputTape);
+		auto start = std::chrono::high_resolution_clock::now();
 		makeTapeSort(inputTape, outputTape, config);
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		std::cout << "Time of sorting: " << duration << " milliseconds\n";
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << "\n";
 		return 1;
