@@ -163,7 +163,13 @@ private:
 	long long pos_ = 0;
 	std::fstream file_;
 	void makeDelay(long long delay) {
-		std::this_thread::sleep_for(std::chrono::nanoseconds(delay));
+		auto start = std::chrono::high_resolution_clock::now();
+		while (true) {
+			auto elapsed = std::chrono::high_resolution_clock::now() - start;
+			if (std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() >= delay) {
+				break;
+			}
+		}
 	}
 };
 
@@ -400,7 +406,7 @@ void makeTapeSort(Tape& inputTape, Tape& outputTape, Config& config) {
 
 void makeFile() {
 	std::ofstream file("input.bin", std::ios::binary);
-	int n = 1'000'00;
+	int n = 100'000;
 	std::vector<int> data(n);
 	for (int i = 0; i < n; i++) {
 		data[i] = rand();
@@ -433,7 +439,7 @@ int main(int argc, char* argv[]) {
 		Tape inputTape(inputFile, config);
 		Tape outputTape(outputFile, config);
 		
-		makeTestTape(inputTape);
+		//makeTestTape(inputTape);
 
 		makeTapeSort(inputTape, outputTape, config);
 	} catch (const std::exception& e) {
